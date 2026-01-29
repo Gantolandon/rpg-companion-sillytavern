@@ -1170,7 +1170,7 @@ async function initUI() {
         $('#rpg-external-model').val(extensionSettings.externalApiSettings.model || '');
         $('#rpg-external-max-tokens').val(extensionSettings.externalApiSettings.maxTokens || 8192);
         $('#rpg-external-temperature').val(extensionSettings.externalApiSettings.temperature ?? 0.7);
-        $('#rpg-external-stream').checked = (extensionSettings.externalApiSettings.stream ?? false);
+        $('#rpg-external-stream').prop("checked", (extensionSettings.externalApiSettings.stream ?? false));
     }
 
     $('#rpg-generation-mode').val(extensionSettings.generationMode);
