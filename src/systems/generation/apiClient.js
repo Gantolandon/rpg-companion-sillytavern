@@ -49,7 +49,7 @@ let originalPresetName = null;
  * @throws {Error} If the API call fails or configuration is invalid
  */
 export async function generateWithExternalAPI(messages) {
-    const { baseUrl, model, maxTokens, temperature } = extensionSettings.externalApiSettings || {};
+    const { baseUrl, model, maxTokens, temperature, stream } = extensionSettings.externalApiSettings || {};
     // Retrieve API key from secure storage (not shared extension settings)
     const apiKey = localStorage.getItem('rpg_companion_external_api_key');
 
@@ -84,7 +84,8 @@ export async function generateWithExternalAPI(messages) {
                 model: model.trim(),
                 messages: messages,
                 max_tokens: maxTokens || 2048,
-                temperature: temperature ?? 0.7
+                temperature: temperature ?? 0.7,
+                stream: stream ?? false
             })
         });
 
@@ -105,7 +106,30 @@ export async function generateWithExternalAPI(messages) {
             throw new Error(errorMessage);
         }
 
-        const data = await response.json();
+        const data = null;
+
+        if (stream) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = "";
+
+            try {
+                while (true) {
+                    const {done, value} = await reader.read();
+
+                    if (done) {
+                        data = await buffer.json();
+                        break;
+                    }
+
+                    buffer += decoder.decode(value);
+                }
+            } finally {
+                reader.releaseLock();
+            }
+        } else {
+            data = await response.json();
+        }
 
         if (!data.choices || !data.choices[0] || !data.choices[0].message) {
             throw new Error('Invalid response format from external API');
