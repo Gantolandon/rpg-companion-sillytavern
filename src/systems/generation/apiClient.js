@@ -131,56 +131,55 @@ export async function generateWithExternalAPI(messages) {
 
                     for (const line of lines) {
                         const trimmedLine = line.trim();
-                    }
 
-                              // Skip empty lines and comments
-                    if (!trimmedLine || trimmedLine.startsWith(':')) {
-                        continue;
-                    }
+                    // Skip empty lines and comments
+                        if (!trimmedLine || trimmedLine.startsWith(':')) {
+                            continue;
+                        }
 
-                    if (trimmedLine.startsWith("data: ")) {
-                        const data = trimmedLine.slice(6);
+                        if (trimmedLine.startsWith("data: ")) {
+                            const data = trimmedLine.slice(6);
 
-                    }
+                        }
 
-                    if (data === '[DONE]') {
-                        continue;
-                    }
+                        if (data === '[DONE]') {
+                            continue;
+                        }
 
-                    try {
-                        const parsed = JSON.parse(data);
-                        
-                        // Extract content from the delta
-                        let streamContent = "";
-                        
-                        // OpenAI-style streaming format
-                        if (parsed.choices?.[0]?.delta?.content) {
-                            streamContent = parsed.choices[0].delta.content;
+                        try {
+                            const parsed = JSON.parse(data);
+                            
+                            // Extract content from the delta
+                            let streamContent = "";
+                            
+                            // OpenAI-style streaming format
+                            if (parsed.choices?.[0]?.delta?.content) {
+                                streamContent = parsed.choices[0].delta.content;
+                            }
+                            // Alternative format - direct content in delta
+                            else if (parsed.delta?.content) {
+                                streamContent = parsed.delta.content;
+                            }
+                            // Claude-style format
+                            else if (parsed.delta?.text) {
+                                streamContent = parsed.delta.text;
+                            }
+                            // Some APIs might use 'text' directly
+                            else if (parsed.choices?.[0]?.text) {
+                                streamContent = parsed.choices[0].text;
+                            }
+                            // Google AI Studio streaming format
+                            else if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
+                                streamContent = parsed.candidates[0].content.parts[0].text;
+                            }
+                            
+                            if (streamContent) {
+                                fullText += streamContent;
+                            }
+                        } catch (parseError) {
+                            console.warn(`[SST] [${MODULE_NAME}]`, "Failed to parse SSE data:", data, parseError);
                         }
-                        // Alternative format - direct content in delta
-                        else if (parsed.delta?.content) {
-                            streamContent = parsed.delta.content;
-                        }
-                        // Claude-style format
-                        else if (parsed.delta?.text) {
-                            streamContent = parsed.delta.text;
-                        }
-                        // Some APIs might use 'text' directly
-                        else if (parsed.choices?.[0]?.text) {
-                            streamContent = parsed.choices[0].text;
-                        }
-                        // Google AI Studio streaming format
-                        else if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
-                            streamContent = parsed.candidates[0].content.parts[0].text;
-                        }
-                        
-                        if (streamContent) {
-                            fullText += streamContent;
-                        }
-                    } catch (parseError) {
-                        console.warn(`[SST] [${MODULE_NAME}]`, "Failed to parse SSE data:", data, parseError);
-                    }
-                    
+                    }    
                 }
             } finally {
                 reader.releaseLock();
