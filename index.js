@@ -1004,7 +1004,7 @@ async function initUI() {
                 baseUrl: '', apiKey: '', model: '', maxTokens: 8192, temperature: 0.7, stream: false
             };
         }
-        extensionSettings.externalApiSettings.stream = this.checked;
+        extensionSettings.externalApiSettings.stream = $(this).checked;
         saveSettings();
     });
 
