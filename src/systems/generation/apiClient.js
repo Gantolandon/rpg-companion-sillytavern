@@ -106,7 +106,7 @@ export async function generateWithExternalAPI(messages) {
             throw new Error(errorMessage);
         }
 
-        const content = null;
+        let content = null;
 
         if (stream) {
             const reader = response.body.getReader();
