@@ -118,11 +118,11 @@ export async function generateWithExternalAPI(messages) {
                     const {done, value} = await reader.read();
 
                     if (done) {
-                        data = await buffer.json();
+                        data = JSON.parse(buffer);
                         break;
                     }
 
-                    buffer += decoder.decode(value);
+                    buffer += decoder.decode(value, { stream: true });
                 }
             } finally {
                 reader.releaseLock();
